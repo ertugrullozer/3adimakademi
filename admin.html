@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Yönetim Paneli - Özel İlk Üç Adım Ortaokulu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @media print {
+      nav, footer, #adminLoginView, #adminDashboardView, .no-print, button, input, select {
+        display: none !important;
+      }
+      body, main { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+      #teacherTaskReportModal, #classReportModal {
+        position: absolute !important;
+        left: 0 !important; top: 0 !important;
+        width: 100% !important; height: auto !important;
+        background: white !important; display: block !important;
+        box-shadow: none !important; padding: 0 !important;
+      }
+      .print-area { border: none !important; padding: 0 !important; max-height: none !important; color: black !important; background: white !important; }
+      .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+      table { width: 100% !important; border-collapse: collapse !important; }
+      th, td { border: 1px solid #000 !important; padding: 6px !important; color: black !important; text-align: left !important; }
+    }
+    .print-header { display: none; }
+
+    /* KOYU TEMA DÜZENLEMELERİ */
+    body.dark-mode {
+      background-color: #0f172a !important;
+      color: #f1f5f9 !important;
+    }
+    body.dark-mode .bg-white {
+      background-color: #1e293b !important;
+      color: #f1f5f9 !important;
+      border-color: #334155 !important;
+    }
+    body.dark-mode .bg-gray-100 {
+      background-color: #0f172a !important;
+    }
+    body.dark-mode .bg-gray-50 {
+      background-color: #334155 !important;
+      color: #f1f5f9 !important;
+    }
+    body.dark-mode .bg-indigo-50 {
+      background-color: #1e1b4b !important;
+      color: #e0e7ff !important;
+    }
+    body.dark-mode .bg-amber-50 {
+      background-color: #451a03 !important;
+      color: #fef3c7 !important;
+    }
+    body.dark-mode .bg-emerald-50 {
+      background-color: #064e3b !important;
+      color: #d1fae5 !important;
+    }
+    body.dark-mode input, 
+    body.dark-mode select, 
+    body.dark-mode textarea {
+      background-color: #334155 !important;
+      color: #ffffff !important;
+      border-color: #475569 !important;
+    }
+    body.dark-mode text-gray-800,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-indigo-900,
+    body.dark-mode .text-indigo-950,
+    body.dark-mode .text-amber-800 {
+      color: #f1f5f9 !important;
+    }
+    body.dark-mode table, 
+    body.dark-mode th, 
+    body.dark-mode td {
+      border-color: #334155 !important;
+    }
+    body.dark-mode tbody tr:hover {
+      background-color: #334155 !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen flex flex-col justify-between">
+
+  <!-- MOBİL UYUMLU VE EN SAĞA YASLANMIŞ NAVİGASYON BAR -->
+  <nav class="bg-indigo-900 text-white p-3 md:p-4 shadow-md no-print">
+    <div class="max-w-7xl mx-auto flex flex-row items-center justify-between gap-2">
+      
+      <!-- LOGO VE BAŞLIK -->
+      <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
+        <div class="bg-white text-indigo-900 font-bold p-1 md:p-2 rounded-full w-10 h-10 md:w-14 md:h-14 flex items-center justify-center border-2 border-indigo-300">
+          <img src="3adimkoleji.png" alt="🎓" class="max-h-full max-w-full object-contain">
+        </div>
+        <span class="font-bold text-sm md:text-lg tracking-wide whitespace-nowrap">3ADIM KOLEJİ</span>
+      </div>
+
+      <!-- EN SAĞA YASLANMIŞ RESPONSIVE TEMA SWITCHER -->
+      <div class="flex items-center space-x-1.5 md:space-x-2 ms-auto shrink-0 bg-indigo-950/40 px-2.5 py-1.5 rounded-full border border-indigo-700/50">
+        <span class="text-[11px] md:text-xs font-semibold text-indigo-200 select-none whitespace-nowrap">🌙 <span class="hidden sm:inline">Koyu Tema</span></span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="themeToggle" onchange="toggleTheme()" class="sr-only peer">
+          <div class="w-9 h-5 md:w-11 md:h-6 bg-indigo-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 md:after:h-5 md:after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+        </label>
+      </div>
+
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto p-3 md:p-4 w-full flex-grow">
+
+    <!-- ADMİN GİRİŞİ -->
+    <div id="adminLoginView" class="bg-white p-6 rounded-xl shadow-md border max-w-md mx-auto mt-6 md:mt-10 no-print">
+      <h2 class="text-xl font-bold text-indigo-950 mb-4 text-center">Yönetici Girişi</h2>
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Kullanıcı Adı</label>
+          <input type="text" id="adminUser" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Şifre</label>
+          <input type="password" id="adminPass" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <button type="submit" class="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2.5 rounded-lg shadow">Giriş Yap</button>
+      </form>
+    </div>
+
+    <!-- ADMİN DASHBOARD -->
+    <div id="adminDashboardView" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md border no-print">
+        <h2 class="text-lg md:text-xl font-bold text-indigo-950">Öğretmen, Sınıf Ve Görev Yönetimi</h2>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button onclick="openClassReportModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1">
+            📊 Tüm Sınıfların Raporunu Al 
+          </button>
+          <button onclick="location.reload()" class="text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg shadow">Çıkış Yap</button>
+        </div>
+      </div>
+
+      <!-- BÖLÜM 1: ÖĞRETMEN YÖNETİMİ -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Öğretmen Ekleme Formu -->
+        <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
+          <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">Yeni Öğretmen Ekle</h3>
+          <form onsubmit="handleTeacherAdd(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Adı Soyadı</label>
+              <input type="text" id="tFullName" required class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Branşı (Örn: Matematik)</label>
+              <input type="text" id="tSubject" required placeholder="Örn: Matematik" class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı (Örn: 5A)</label>
+              <input type="text" id="tAdvisorClass" required placeholder="Örn: 5A" class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Ders Verdiği Sınıflar (Virgülle Ayırın)</label>
+              <input type="text" id="tClasses" required placeholder="Örn: 5A, 5B, 6A, 7B" class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Kullanıcı Adı</label>
+              <input type="text" id="tUser" required class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Şifre</label>
+              <input type="password" id="tPass" required class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700">Öğretmeni Kaydet</button>
+          </form>
+        </div>
+
+        <!-- Öğretmen Listesi -->
+        <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200">
+          <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">Sistemdeki Öğretmenler (Görev Raporu İçin Adına Tıklayın)</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase">
+                <tr>
+                  <th class="p-2 border-b">Adı Soyadı</th>
+                  <th class="p-2 border-b">Branş</th>
+                  <th class="p-2 border-b">Danışman</th>
+                  <th class="p-2 border-b">Ders Sınıfları</th>
+                  <th class="p-2 border-b text-center no-print">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="teacherTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BÖLÜM 2: ÖĞRETMEN GÖREV TANIMLAMA SEKTÖRÜ -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-300">
+        <!-- Görev Tanımlama Formu -->
+        <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
+          <h3 class="font-bold text-amber-800 mb-4 border-b pb-2">📌 Yeni Görev Tanımla</h3>
+          <form onsubmit="handleTaskSave(event)" class="space-y-3">
+            <input type="hidden" id="editTaskId">
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Görev Başlığı</label>
+              <input type="text" id="taskTitle" required placeholder="Örn: 1. Dönem Zümre Tutanağı" class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Açıklama / Detay</label>
+              <textarea id="taskDesc" rows="2" placeholder="Görev detayını yazınız..." class="w-full p-2 border rounded-lg text-sm"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Son Teslim / Tamamlama Tarihi</label>
+              <input type="date" id="taskDueDate" required class="w-full p-2 border rounded-lg text-sm">
+              <div class="flex items-center space-x-2 mt-2"><input type="checkbox" id="repeatWeekly" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+              <label for="repeatWeekly" class="text-sm text-gray-700">Haftalık Tekrar Et</label>.</div>
+            </div>
+
+            <!-- KAPSAM / ATAMA SEÇENEĞİ -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Görev Atama Kapsamı</label>
+              <select id="taskAssignType" onchange="toggleTeacherSelection()" class="w-full p-2 border rounded-lg text-sm font-bold bg-amber-50 text-amber-900">
+                <option value="ALL">🌐 Tüm Öğretmenlere Toplu Atayarak Yayınla</option>
+                <option value="SPECIFIC">🎯 Seçilen Öğretmen(ler)e Özel Atayarak Yayınla</option>
+              </select>
+            </div>
+
+            <!-- ÖĞRETMEN SEÇİM LİSTESİ (Çoklu Seçim) -->
+            <div id="teacherSelectContainer" class="hidden border rounded-lg p-2 bg-gray-50 max-h-36 overflow-y-auto space-y-1">
+              <label class="block text-[11px] font-bold text-gray-500 mb-1 border-b pb-1">Atanacak Öğretmenleri Seçiniz:</label>
+              <div id="teacherCheckboxes" class="space-y-1 text-xs"></div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+              <button type="submit" id="btnSaveTask" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-amber-700">Görevi Yayınla</button>
+              <button type="button" id="btnCancelTask" onclick="resetTaskForm()" class="hidden bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-bold">İptal</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Görev Listesi -->
+        <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
+          <h3 class="font-bold text-amber-800 mb-4 border-b pb-2">📋 Tanımlanmış Görevler</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-amber-50 text-amber-900 text-xs uppercase">
+                <tr>
+                  <th class="p-2 border-b">Görev Başlığı</th>
+                  <th class="p-2 border-b">Atanan Kapsam</th>
+                  <th class="p-2 border-b">Son Tarih</th>
+                  <th class="p-2 border-b text-center">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BÖLÜM 3: HAFTALIK ÖĞRENME KAZANIMLARI YÖNETİMİ -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-300">
+        <!-- Kazanım Ekleme / Güncelleme Formu -->
+        <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
+          <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">📚 Haftalık Öğrenme Kazanımları</h3>
+          <form onsubmit="handleWeeklySave(event)" class="space-y-3">
+            <input type="hidden" id="editWeeklyId">
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Sınıf Adı (Örn: 5A)</label>
+              <input type="text" id="weeklyClassName" required placeholder="Örn: 5A" class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600">Kazanım Linki (URL)</label>
+              <input type="url" id="weeklyTargetUrl" required placeholder="https://..." class="w-full p-2 border rounded-lg text-sm">
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button type="submit" id="btnSaveWeekly" class="w-full bg-indigo-700 text-white font-bold py-2 rounded-lg text-sm hover:bg-indigo-800">Kazanım Linki Kaydet</button>
+              <button type="button" id="btnCancelWeekly" onclick="resetWeeklyForm()" class="hidden bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-bold">İptal</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Kazanım Listesi -->
+        <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
+          <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">📝 Haftalık Öğrenme Kazanımları</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase">
+                <tr>
+                  <th class="p-2 border-b">Sınıf Adı</th>
+                  <th class="p-2 border-b">Eklenen Dosyalar</th>
+                  <th class="p-2 border-b text-center">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="weeklyTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ÖĞRETMEN GÜNCELLEME MODAL -->
+  <div id="editTeacherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-lg text-indigo-900">Öğretmen Bilgilerini Güncelle</h3>
+        <button onclick="closeEditTeacherModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleTeacherUpdate(event)" class="space-y-3">
+        <input type="hidden" id="editTeacherId">
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Adı Soyadı</label>
+          <input type="text" id="editFullName" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Branşı</label>
+          <input type="text" id="editSubject" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı</label>
+          <input type="text" id="editAdvisorClass" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Ders Verdiği Sınıflar (Virgülle Ayırın)</label>
+          <input type="text" id="editClasses" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Kullanıcı Adı</label>
+          <input type="text" id="editUser" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600">Yeni Şifre</label>
+          <input type="text" id="editPass" required class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeEditTeacherModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs px-4 py-2 rounded-lg font-bold">İptal</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-lg font-bold">Güncelle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ÖĞRETMEN GÖREV RAPORU MODALI -->
+  <div id="teacherTaskReportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white p-6 rounded-xl shadow-xl max-w-2xl w-full space-y-4 print-area">
+      <div class="print-header">
+        <h1 class="text-xl font-bold text-indigo-950">ÖZEL İLK ÜÇ ADIM ORTAOKULU</h1>
+        <h2 class="text-sm font-bold text-gray-700">Öğretmen Görev Takip Ve Raporlama Belgesi</h2>
+      </div>
+
+      <div class="flex justify-between items-center border-b pb-2 no-print">
+        <h3 class="font-bold text-lg text-indigo-900">📋 Öğretmen Görev Raporu</h3>
+        <button onclick="closeTaskReportModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+
+      <div class="bg-indigo-50 p-3 rounded-lg border text-xs grid grid-cols-2 gap-2">
+        <div><span class="text-gray-500">Öğretmen Adı:</span> <strong id="repTeacherName" class="text-indigo-950">-</strong></div>
+        <div><span class="text-gray-500">Branş / Danışmanlık:</span> <strong id="repTeacherSub" class="text-indigo-950">-</strong></div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border">
+          <thead class="bg-gray-100 uppercase font-bold">
+            <tr>
+              <th class="p-2 border">Görev Başlığı</th>
+              <th class="p-2 border">Son Tarih</th>
+              <th class="p-2 border text-center">Durumu</th>
+            </tr>
+          </thead>
+          <tbody id="repTaskTableBody" class="divide-y"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 no-print">
+        <button onclick="closeTaskReportModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs px-4 py-2 rounded-lg font-bold">Kapat</button>
+     
+      </div>
+    </div>
+  </div>
+
+  <!-- SINIF BAZLI DERS/ÖDEV RAPORU MODALI -->
+  <div id="classReportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white p-6 rounded-xl shadow-xl max-w-5xl w-full space-y-4 max-h-[90vh] overflow-y-auto print-area">
+      
+      <div class="print-header">
+        <h1 class="text-xl font-bold text-indigo-950">ÖZEL İLK ÜÇ ADIM ORTAOKULU</h1>
+        <h2 class="text-sm font-bold text-gray-700">Sınıf Bazlı Ödev ve Ders Takip Raporu</h2>
+      </div>
+
+      <div class="flex justify-between items-center border-b pb-2 no-print">
+        <h3 class="font-bold text-lg text-indigo-900">📊 Sınıf Bazlı Öğrenci Ödev Raporu</h3>
+        <button onclick="closeClassReportModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+
+      <!-- Sınıf ve Tarih Filtreleme Alanı -->
+      <div class="bg-emerald-50 p-3 rounded-lg border flex flex-wrap gap-4 items-center no-print">
+        <div>
+          <label class="block text-xs font-bold text-emerald-900 mb-1">Sınıf Seçiniz:</label>
+          <select id="reportClassSelect" onchange="generateClassReport()" class="p-2 border rounded-lg text-xs font-bold bg-white text-gray-800">
+            <option value="">-- Sınıf Seçin --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-emerald-900 mb-1">Başlangıç Tarihi:</label>
+          <input type="date" id="reportStartDateSelect" onchange="generateClassReport()" class="p-1.5 border rounded-lg text-xs bg-white text-gray-800">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-emerald-900 mb-1">Bitiş Tarihi:</label>
+          <input type="date" id="reportEndDateSelect" onchange="generateClassReport()" class="p-1.5 border rounded-lg text-xs bg-white text-gray-800">
+        </div>
+      </div>
+
+      <!-- Danışman Öğretmen ve Sınıf Bilgileri -->
+      <div id="classReportMetaInfo" class="bg-indigo-50/70 p-3 rounded-lg border text-xs grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div><span class="text-gray-500">Sınıf:</span> <strong id="adminRepClass" class="text-indigo-950">-</strong></div>
+        <div><span class="text-gray-500">Ödev Tarih Aralığı:</span> <strong id="adminRepDate" class="text-indigo-950">-</strong></div>
+        <div><span class="text-gray-500">Danışman Öğretmen:</span> <strong id="adminRepAdvisor" class="text-indigo-950">-</strong></div>
+      </div>
+
+      <!-- Rapor Tablo Yapısı -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border border-collapse">
+          <thead class="bg-gray-100 uppercase font-bold text-gray-800">
+            <tr id="classReportHeader">
+              <th class="p-2 border">Öğrenci No</th>
+              <th class="p-2 border">Adı Soyadı</th>
+            </tr>
+          </thead>
+          <tbody id="classReportBody" class="divide-y">
+            <tr>
+              <td colspan="10" class="p-4 text-center text-gray-500">Lütfen yukarıdan bir sınıf seçiniz.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 no-print">
+        <button onclick="closeClassReportModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs px-4 py-2 rounded-lg font-bold">Kapat</button>
+        <button onclick="window.print()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-1">
+          🖨️ Yazdır / PDF İndir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-gray-800 text-gray-400 text-center py-4 text-xs border-t border-gray-700 no-print">
+    <a href="https://github.com/ertugrullozer" target="_blank" rel="noopener noreferrer" class="hover:underline">Ertuğrul ÖZER</a> © 2026 | Tüm Hakları Saklıdır.
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://pwerhvkccmelmdotedtl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_G0C5yq-IltpTzlc-fO80Aw_fvxmJ1Ia";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let globalTeachersList = [];
+
+    // TEMA DEĞİŞTİRME MANTIĞI
+    function toggleTheme() {
+      const isDark = document.getElementById('themeToggle').checked;
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // Sayfa Yüklendiğinde Varsayılan Tarihleri Bugün Yap ve Tema Tercihini Yükle
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggle').checked = true;
+      }
+
+      const startInput = document.getElementById('reportStartDateSelect');
+      const endInput = document.getElementById('reportEndDateSelect');
+      
+      if (startInput && endInput) {
+        const today = new Date().toISOString().split('T')[0];
+        startInput.value = today;
+        endInput.value = today;
+      }
+    });
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('adminUser').value;
+      const p = document.getElementById('adminPass').value;
+
+      const { data } = await supabaseClient.from('admins').select('*').eq('username', u).eq('password', p).single();
+      if (data) {
+        document.getElementById('adminLoginView').classList.add('hidden');
+        document.getElementById('adminDashboardView').classList.remove('hidden');
+        await loadAdminTeachers();
+        loadTasks();
+        loadWeeklyLearnings();
+      } else alert('Hatalı Kullanıcı Adı veya Şifre!');
+    }
+
+    async function loadAdminTeachers() {
+      const { data: teachers } = await supabaseClient.from('teachers').select('*').order('id', { ascending: true });
+      const { data: teacherClasses } = await supabaseClient.from('teacher_classes').select('*');
+
+      globalTeachersList = teachers || [];
+
+      const tbody = document.getElementById('teacherTableBody');
+      tbody.innerHTML = '';
+
+      globalTeachersList.forEach(t => {
+        const classes = (teacherClasses || [])
+          .filter(tc => tc.teacher_id === t.id)
+          .map(tc => tc.class_name)
+          .join(', ');
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-2 font-bold text-indigo-900 cursor-pointer hover:underline" onclick="openTeacherTaskReport(${t.id})" title="Görev Raporunu Aç">${t.full_name} 📊</td>
+            <td class="p-2 text-indigo-700 font-bold">${t.subject}</td>
+            <td class="p-2 font-bold">${t.advisor_class}</td>
+            <td class="p-2 text-xs bg-gray-50 rounded">${classes || '-'}</td>
+            <td class="p-2 text-center space-x-2 no-print">
+              <button onclick="openEditTeacherModal(${t.id})" class="text-blue-600 hover:text-blue-800 text-xs font-bold">Güncelle</button>
+              <button onclick="handleDeleteTeacher(${t.id})" class="text-red-600 hover:text-red-800 text-xs font-bold">Sil</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      renderTeacherCheckboxes();
+    }
+
+    function renderTeacherCheckboxes() {
+      const boxContainer = document.getElementById('teacherCheckboxes');
+      boxContainer.innerHTML = '';
+      globalTeachersList.forEach(t => {
+        boxContainer.innerHTML += `
+          <label class="flex items-center space-x-2 hover:bg-gray-100 p-1 rounded cursor-pointer">
+            <input type="checkbox" name="selectedTeachers" value="${t.id}" class="rounded text-amber-600">
+            <span class="font-medium text-gray-700">${t.full_name} (${t.subject})</span>
+          </label>
+        `;
+      });
+    }
+
+    function toggleTeacherSelection() {
+      const assignType = document.getElementById('taskAssignType').value;
+      const selectBox = document.getElementById('teacherSelectContainer');
+      if (assignType === 'SPECIFIC') {
+        selectBox.classList.remove('hidden');
+      } else {
+        selectBox.classList.add('hidden');
+      }
+    }
+
+    async function handleTeacherAdd(e) {
+      e.preventDefault();
+      const full_name = document.getElementById('tFullName').value;
+      const subject = document.getElementById('tSubject').value.trim();
+      const advisor_class = document.getElementById('tAdvisorClass').value.toUpperCase().trim();
+      const classesInput = document.getElementById('tClasses').value.toUpperCase().split(',');
+      const username = document.getElementById('tUser').value;
+      const password = document.getElementById('tPass').value;
+
+      const { data: teacher, error } = await supabaseClient
+        .from('teachers')
+        .insert([{ full_name, subject, advisor_class, username, password }])
+        .select().single();
+
+      if (error) {
+        alert('Hata: Kullanıcı adı sistemde zaten kayıtlı olabilir.');
+        return;
+      }
+
+      const classRows = classesInput.map(c => ({
+        teacher_id: teacher.id,
+        class_name: c.trim()
+      })).filter(c => c.class_name.length > 0);
+
+      if (classRows.length > 0) {
+        await supabaseClient.from('teacher_classes').insert(classRows);
+      }
+
+      alert('Öğretmen ve Sınıf Yetkileri Başarıyla Kaydedildi.');
+      location.reload();
+    }
+
+    async function handleDeleteTeacher(id) {
+      if (confirm('Öğretmeni silmek istediğinize emin misiniz?')) {
+        await supabaseClient.from('teachers').delete().eq('id', id);
+        loadAdminTeachers();
+      }
+    }
+
+    async function openEditTeacherModal(id) {
+      const { data: teacher } = await supabaseClient.from('teachers').select('*').eq('id', id).single();
+      const { data: tClasses } = await supabaseClient.from('teacher_classes').select('class_name').eq('teacher_id', id);
+
+      if (!teacher) return;
+
+      const classesStr = (tClasses || []).map(c => c.class_name).join(', ');
+
+      document.getElementById('editTeacherId').value = teacher.id;
+      document.getElementById('editFullName').value = teacher.full_name;
+      document.getElementById('editSubject').value = teacher.subject;
+      document.getElementById('editAdvisorClass').value = teacher.advisor_class;
+      document.getElementById('editClasses').value = classesStr;
+      document.getElementById('editUser').value = teacher.username;
+      document.getElementById('editPass').value = teacher.password;
+
+      document.getElementById('editTeacherModal').classList.remove('hidden');
+    }
+
+    function closeEditTeacherModal() {
+      document.getElementById('editTeacherModal').classList.add('hidden');
+    }
+
+    async function handleTeacherUpdate(e) {
+      e.preventDefault();
+      const id = document.getElementById('editTeacherId').value;
+      const full_name = document.getElementById('editFullName').value;
+      const subject = document.getElementById('editSubject').value.trim();
+      const advisor_class = document.getElementById('editAdvisorClass').value.toUpperCase().trim();
+      const classesInput = document.getElementById('editClasses').value.toUpperCase().split(',');
+      const username = document.getElementById('editUser').value;
+      const password = document.getElementById('editPass').value;
+
+      const { error } = await supabaseClient
+        .from('teachers')
+        .update({ full_name, subject, advisor_class, username, password })
+        .eq('id', id);
+
+      if (error) {
+        alert('Güncelleme sırasında hata oluştu. Kullanıcı adı çakışıyor olabilir.');
+        return;
+      }
+
+      await supabaseClient.from('teacher_classes').delete().eq('teacher_id', id);
+
+      const classRows = classesInput.map(c => ({
+        teacher_id: parseInt(id),
+        class_name: c.trim()
+      })).filter(c => c.class_name.length > 0);
+
+      if (classRows.length > 0) {
+        await supabaseClient.from('teacher_classes').insert(classRows);
+      }
+
+      alert('Öğretmen bilgileri başarıyla güncellendi.');
+      closeEditTeacherModal();
+      loadAdminTeachers();
+    }
+
+    // --- GÖREV YÖNETİMİ İŞLEMLERİ ---
+
+    // Tekrar eden görevlerin her Pazartesi sıfırlanması için mevcut haftanın Pazartesi tarihini hesaplar
+    function getMondayOfCurrentWeek() {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = (day === 0 ? -6 : 1) - day;
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+      monday.setHours(0, 0, 0, 0);
+      return monday;
+    }
+
+    // Normal görevlerde tamamlanma kalıcıdır; tekrar eden görevlerde sadece mevcut hafta içindeki tamamlanma geçerlidir
+    function isTaskDoneForCurrentPeriod(task, statusObj) {
+      if (!statusObj || statusObj.status !== 'YAPTI') return false;
+      if (!task.repeat_weekly) return true;
+      const monday = getMondayOfCurrentWeek();
+      const updated = statusObj.updated_at ? new Date(statusObj.updated_at) : null;
+      return !!(updated && updated >= monday);
+    }
+
+    async function loadTasks() {
+      const { data: tasks } = await supabaseClient.from('tasks').select('*').order('due_date', { ascending: true });
+      const tbody = document.getElementById('taskTableBody');
+      tbody.innerHTML = '';
+
+      (tasks || []).forEach(t => {
+        let assignedLabel = '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold text-[11px]">🌐 Tüm Öğretmenler</span>';
+        
+        if (t.assigned_type === 'SPECIFIC') {
+          const teacherIds = Array.isArray(t.assigned_teachers) ? t.assigned_teachers : JSON.parse(t.assigned_teachers || '[]');
+          const names = globalTeachersList.filter(gt => teacherIds.includes(gt.id) || teacherIds.includes(gt.id.toString())).map(gt => gt.full_name).join(', ');
+          assignedLabel = `<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px]" title="${names}">🎯 ${teacherIds.length} Kişi (${names || 'Özel'})</span>`;
+        }
+
+        const rowClass = t.repeat_weekly ? 'bg-purple-50' : '';
+        const dueLabel = t.repeat_weekly
+          ? '<span class="text-purple-700 font-bold">🔁 Tekrar Eden Görev</span>'
+          : t.due_date;
+
+        tbody.innerHTML += `
+          <tr class="${rowClass}">
+            <td class="p-2 font-bold text-gray-800">${t.title}</td>
+            <td class="p-2 text-xs">${assignedLabel}</td>
+            <td class="p-2 text-xs font-mono font-bold text-amber-700">${dueLabel}</td>
+            <td class="p-2 text-center space-x-2">
+              <button onclick="editTask(${t.id}, '${t.title}', '${t.description || ''}', '${t.due_date}', '${t.assigned_type || 'ALL'}', '${JSON.stringify(t.assigned_teachers || [])}', ${t.repeat_weekly ? 'true' : 'false'})" class="text-blue-600 hover:text-blue-800 text-xs font-bold">Düzenle</button>
+              <button onclick="deleteTask(${t.id})" class="text-red-600 hover:text-red-800 text-xs font-bold">Sil</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function handleTaskSave(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editTaskId').value;
+      const title = document.getElementById('taskTitle').value;
+      const description = document.getElementById('taskDesc').value;
+      const due_date = document.getElementById('taskDueDate').value;
+      const assigned_type = document.getElementById('taskAssignType').value;
+      const repeat_weekly = document.getElementById('repeatWeekly').checked;
+      let assigned_teachers = [];
+      if (assigned_type === 'SPECIFIC') {
+        const checkedBoxes = document.querySelectorAll('input[name="selectedTeachers"]:checked');
+        assigned_teachers = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+        if (assigned_teachers.length === 0) {
+          alert('Lütfen en az bir öğretmen seçiniz!');
+          return;
+        }
+      }
+
+      const taskPayload = { title, description, due_date, assigned_type, assigned_teachers,repeat_weekly };
+
+      if (editId) {
+        await supabaseClient.from('tasks').update(taskPayload).eq('id', editId);
+      } else {
+        await supabaseClient.from('tasks').insert([taskPayload]);
+      }
+
+      resetTaskForm();
+      loadTasks();
+    }
+
+    function editTask(id, title, description, due_date, assignType, assignedTeachersStr, repeatWeekly) {
+      document.getElementById('editTaskId').value = id;
+      document.getElementById('taskTitle').value = title;
+      document.getElementById('taskDesc').value = description;
+      document.getElementById('taskDueDate').value = due_date;
+      document.getElementById('taskAssignType').value = assignType || 'ALL';
+      document.getElementById('repeatWeekly').checked = (repeatWeekly === true || repeatWeekly === 'true');
+
+      toggleTeacherSelection();
+
+      if (assignType === 'SPECIFIC') {
+        let teacherIds = [];
+        try { teacherIds = typeof assignedTeachersStr === 'string' ? JSON.parse(assignedTeachersStr) : assignedTeachersStr; } catch(e){}
+        const checkboxes = document.querySelectorAll('input[name="selectedTeachers"]');
+        checkboxes.forEach(cb => {
+          cb.checked = teacherIds.includes(parseInt(cb.value)) || teacherIds.includes(cb.value);
+        });
+      }
+
+      document.getElementById('btnSaveTask').innerText = "Görevi Güncelle";
+      document.getElementById('btnCancelTask').classList.remove('hidden');
+    }
+
+    function resetTaskForm() {
+      document.getElementById('editTaskId').value = '';
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDesc').value = '';
+      document.getElementById('taskDueDate').value = '';
+      document.getElementById('taskAssignType').value = 'ALL';
+      document.getElementById('repeatWeekly').checked = false;
+      
+      toggleTeacherSelection();
+      const checkboxes = document.getElementById('teacherCheckboxes').querySelectorAll('input[name="selectedTeachers"]');
+      checkboxes.forEach(cb => cb.checked = false);
+
+      document.getElementById('btnSaveTask').innerText = "Görevi Yayınla";
+      document.getElementById('btnCancelTask').classList.add('hidden');
+    }
+
+    async function deleteTask(id) {
+      if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+        await supabaseClient.from('tasks').delete().eq('id', id);
+        loadTasks();
+      }
+    }
+
+    // --- HAFTALIK ÖĞRENME KAZANIMLARI İŞLEMLERİ ---
+
+    async function loadWeeklyLearnings() {
+      const { data: list, error } = await supabaseClient
+        .from('weekly_learnings')
+        .select('*')
+        .order('class_name', { ascending: true });
+
+      const tbody = document.getElementById('weeklyTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (error) {
+        console.error("Kazanımlar yüklenirken hata oluştu:", error);
+        return;
+      }
+
+      (list || []).forEach(item => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-2 font-bold text-indigo-950">${item.class_name}</td>
+            <td class="p-2 text-xs">
+              <a href="${item.target_url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline break-all font-mono">Hatalık Ders Kazanımlarını İncele</a>
+            </td>
+            <td class="p-2 text-center space-x-2">
+              <button onclick="editWeekly(${item.id}, '${item.class_name}', '${item.target_url}')" class="text-blue-600 hover:text-blue-800 text-xs font-bold">Düzenle</button>
+              <button onclick="deleteWeekly(${item.id})" class="text-red-600 hover:text-red-800 text-xs font-bold">Sil</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function handleWeeklySave(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editWeeklyId').value;
+      const class_name = document.getElementById('weeklyClassName').value.toUpperCase().trim();
+      const target_url = document.getElementById('weeklyTargetUrl').value.trim();
+
+      const payload = { class_name, target_url };
+
+      if (editId) {
+        const { error } = await supabaseClient.from('weekly_learnings').update(payload).eq('id', editId);
+        if (error) {
+          alert('Güncelleme sırasında hata oluştu: ' + error.message);
+          return;
+        }
+      } else {
+        const { error } = await supabaseClient.from('weekly_learnings').insert([payload]);
+        if (error) {
+          alert('Kaydetme sırasında hata oluştu (Bu sınıf adı zaten eklenmiş olabilir): ' + error.message);
+          return;
+        }
+      }
+
+      resetWeeklyForm();
+      loadWeeklyLearnings();
+    }
+
+    function editWeekly(id, className, targetUrl) {
+      document.getElementById('editWeeklyId').value = id;
+      document.getElementById('weeklyClassName').value = className;
+      document.getElementById('weeklyTargetUrl').value = targetUrl;
+
+      document.getElementById('btnSaveWeekly').innerText = "Kazanım Linki Güncelle";
+      document.getElementById('btnCancelWeekly').classList.remove('hidden');
+    }
+
+    function resetWeeklyForm() {
+      document.getElementById('editWeeklyId').value = '';
+      document.getElementById('weeklyClassName').value = '';
+      document.getElementById('weeklyTargetUrl').value = '';
+
+      document.getElementById('btnSaveWeekly').innerText = "Kazanım Linki Kaydet";
+      document.getElementById('btnCancelWeekly').classList.add('hidden');
+    }
+
+    async function deleteWeekly(id) {
+      if (confirm('Bu haftalık öğrenme kazanım kaydını silmek istediğinize emin misiniz?')) {
+        await supabaseClient.from('weekly_learnings').delete().eq('id', id);
+        loadWeeklyLearnings();
+      }
+    }
+
+    // --- ÖĞRETMEN BAZLI GÖREV RAPORU ---
+
+    async function openTeacherTaskReport(teacherId) {
+      const { data: teacher } = await supabaseClient.from('teachers').select('*').eq('id', teacherId).single();
+      const { data: tasks } = await supabaseClient.from('tasks').select('*').order('due_date', { ascending: true });
+      const { data: statusList } = await supabaseClient.from('teacher_task_status').select('*').eq('teacher_id', teacherId);
+
+      if (!teacher) return;
+
+      document.getElementById('repTeacherName').innerText = teacher.full_name;
+      document.getElementById('repTeacherSub').innerText = `${teacher.subject} / Danışman: ${teacher.advisor_class}`;
+
+      const tbody = document.getElementById('repTaskTableBody');
+      tbody.innerHTML = '';
+
+      const filteredTasks = (tasks || []).filter(task => {
+        if (!task.assigned_type || task.assigned_type === 'ALL') return true;
+        const assignedArray = Array.isArray(task.assigned_teachers) ? task.assigned_teachers : JSON.parse(task.assigned_teachers || '[]');
+        return assignedArray.includes(teacherId) || assignedArray.includes(teacherId.toString());
+      });
+
+      filteredTasks.forEach(task => {
+        const statusObj = (statusList || []).find(s => s.task_id === task.id);
+        const isDone = isTaskDoneForCurrentPeriod(task, statusObj);
+        const dueLabel = task.repeat_weekly ? 'Tekrar Eden Görev' : task.due_date;
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-2 border font-medium">${task.title}</td>
+            <td class="p-2 border font-mono text-gray-600">${dueLabel}</td>
+            <td class="p-2 border text-center font-bold">
+              <span class="px-2 py-0.5 rounded text-[10px] ${isDone ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
+                ${isDone ? 'YAPILDI' : 'YAPILMADI'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('teacherTaskReportModal').classList.remove('hidden');
+    }
+
+    function closeTaskReportModal() {
+      document.getElementById('teacherTaskReportModal').classList.add('hidden');
+    }
+
+    // --- SINIF BAZLI DERS / ÖDEV RAPORU İŞLEMLERİ ---
+
+    async function openClassReportModal() {
+      const { data: students } = await supabaseClient.from('students').select('grade_class');
+      
+      const classSelect = document.getElementById('reportClassSelect');
+      classSelect.innerHTML = '<option value="">-- Sınıf Seçin --</option>';
+
+      if (students && students.length > 0) {
+        const classes = [...new Set(students.map(s => s.grade_class))].sort();
+        classes.forEach(c => {
+          classSelect.innerHTML += `<option value="${c}">${c} Sınıfı</option>`;
+        });
+      }
+
+      document.getElementById('classReportModal').classList.remove('hidden');
+    }
+
+    function closeClassReportModal() {
+      document.getElementById('classReportModal').classList.add('hidden');
+    }
+
+    async function generateClassReport() {
+      const selectedClass = document.getElementById('reportClassSelect').value;
+      const startDate = document.getElementById('reportStartDateSelect').value;
+      const endDate = document.getElementById('reportEndDateSelect').value;
+
+      const headerTr = document.getElementById('classReportHeader');
+      const tbody = document.getElementById('classReportBody');
+
+      if (!selectedClass) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-500">Lütfen yukarıdan bir sınıf seçiniz.</td></tr>';
+        document.getElementById('adminRepClass').innerText = '-';
+        document.getElementById('adminRepDate').innerText = '-';
+        document.getElementById('adminRepAdvisor').innerText = '-';
+        return;
+      }
+
+      // Danışman Öğretmen Bilgisini Çek
+      const { data: advisor } = await supabaseClient
+        .from('teachers')
+        .select('full_name')
+        .eq('advisor_class', selectedClass)
+        .single();
+
+      document.getElementById('adminRepClass').innerText = `${selectedClass} Sınıfı`;
+      document.getElementById('adminRepDate').innerText = (startDate && endDate) ? `${startDate} / ${endDate}` : '-';
+      document.getElementById('adminRepAdvisor').innerText = advisor ? advisor.full_name : 'Atanmadı';
+
+      // 1. Seçilen sınıftaki öğrencileri çek
+      const { data: students } = await supabaseClient
+        .from('students')
+        .select('*')
+        .eq('grade_class', selectedClass)
+        .order('student_number', { ascending: true });
+
+      if (!students || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-500">Bu sınıfa ait öğrenci bulunamadı.</td></tr>';
+        return;
+      }
+
+      const studentIds = students.map(s => s.id);
+
+      // 2. Öğrencilere ait tarih aralığındaki ve SADECE ÖDEV VERİLMİŞ DERSLERİ çek
+      let query = supabaseClient
+        .from('homework_status')
+        .select('*')
+        .in('student_id', studentIds);
+
+      if (startDate) query = query.gte('assigned_date', startDate);
+      if (endDate) query = query.lte('assigned_date', endDate);
+
+      const { data: homeworks } = await query;
+
+      // Sadece bu tarih aralığında ödev girişi yapılan ders adları
+      const activeHomeworks = (homeworks || []).filter(h => h.status !== 'ODEV_VERILMEDI');
+      const subjects = [...new Set(activeHomeworks.map(h => h.subject_name))].sort();
+
+      // Tablo Başlığını Oluştur
+      headerTr.innerHTML = `
+        <th class="p-2 border">Öğrenci No</th>
+        <th class="p-2 border">Adı Soyadı</th>
+      `;
+
+      if (subjects.length === 0) {
+        headerTr.innerHTML += `<th class="p-2 border text-center">Ödev Kaydı</th>`;
+      } else {
+        subjects.forEach(sub => {
+          headerTr.innerHTML += `<th class="p-2 border text-center">${sub}</th>`;
+        });
+        headerTr.innerHTML += `<th class="p-2 border text-center bg-indigo-100 text-indigo-900">Özet (Yapılan / Toplam)</th>`;
+      }
+
+      // Tablo Satırlarını (Öğrencileri) Oluştur
+      tbody.innerHTML = '';
+      students.forEach(student => {
+        let totalAssignedHW = 0;
+        let totalCompletedHW = 0;
+
+        let rowHtml = `
+          <tr>
+            <td class="p-2 border font-mono font-bold">${student.student_number}</td>
+            <td class="p-2 border font-bold text-gray-800">${student.full_name}</td>
+        `;
+
+        if (subjects.length === 0) {
+          rowHtml += `<td class="p-2 border text-center text-gray-400">Bu tarih aralığında verilen ödev yok</td>`;
+        } else {
+          subjects.forEach(sub => {
+            const studentSubHomeworks = (homeworks || []).filter(h => h.student_id === student.id && h.subject_name === sub && h.status !== 'ODEV_VERILMEDI');
+
+            if (studentSubHomeworks.length === 0) {
+              rowHtml += `
+                <td class="p-2 border text-center">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-400">
+                    Verilmedi
+                  </span>
+                </td>
+              `;
+            } else {
+              let badgesHtml = '<div class="flex flex-col gap-1 items-center">';
+
+              studentSubHomeworks.forEach(hw => {
+                totalAssignedHW++;
+                let badgeClass = "bg-gray-100 text-gray-600";
+                let statusText = "Verilmedi";
+
+                if (hw.status === 'YAPTI' || hw.status === 'ODEV_YAPILDI') {
+                  badgeClass = "bg-green-100 text-green-800 border border-green-300";
+                  statusText = "Yapıldı";
+                  totalCompletedHW++;
+                } else if (hw.status === 'YAPMADI' || hw.status === 'ODEV_YAPILMADI') {
+                  badgeClass = "bg-red-100 text-red-800 border border-red-300";
+                  statusText = "Yapılmadı";
+                } else if (hw.status === 'YARIM_YAPTI' || hw.status === 'EKSIK_YAPILDI') {
+                  badgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
+                  statusText = "Yarım";
+                  totalCompletedHW += 0.5; // Yarım yapılanı 0.5 olarak say
+                }
+
+                // Eğer birden fazla ödev varsa tarih bilgisi ile birlikte bas
+                const dateLabel = studentSubHomeworks.length > 1 && hw.assigned_date ? `<span class="text-[9px] text-gray-500 mr-1">${hw.assigned_date.split('-').slice(1).join('/')}:</span>` : '';
+                badgesHtml += `
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass} inline-flex items-center">
+                    ${dateLabel}${statusText}
+                  </span>
+                `;
+              });
+
+              badgesHtml += '</div>';
+              rowHtml += `<td class="p-2 border text-center">${badgesHtml}</td>`;
+            }
+          });
+
+          // Toplam Özet Hesabı Sütunu
+          const ratio = totalAssignedHW > 0 ? Math.round((totalCompletedHW / totalAssignedHW) * 100) : 0;
+          let summaryColor = "bg-indigo-50 text-indigo-900 border-indigo-200";
+          if (ratio >= 80) summaryColor = "bg-green-50 text-green-900 border-green-200";
+          else if (ratio < 50) summaryColor = "bg-red-50 text-red-900 border-red-200";
+
+          rowHtml += `
+            <td class="p-2 border text-center font-bold ${summaryColor}">
+              ${totalCompletedHW} / ${totalAssignedHW} <span class="text-[10px] block text-gray-500">(%${ratio})</span>
+            </td>
+          `;
+        }
+
+        rowHtml += `</tr>`;
+        tbody.innerHTML += rowHtml;
+      });
+    }
+  </script>
+</body>
+</html>
