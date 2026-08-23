@@ -948,94 +948,102 @@
     // 1, 2, 4, 5, 6. SINIF ÖDEV LİSTESİ VEYA ÖDEV KONTROL TABLOSU YAZDIRMA
     function renderTable() {
       const tbody = document.getElementById('mainTableBody');
-      tbody.innerHTML = '';
+  tbody.innerHTML = '';
 
-      const hasAdvisor = currentTeacher.advisor_class && 
-                         currentTeacher.advisor_class.trim() !== '' && 
-                         currentTeacher.advisor_class.toUpperCase() !== 'YOK';
+  const hasAdvisor = currentTeacher.advisor_class && 
+                     currentTeacher.advisor_class.trim() !== '' && 
+                     currentTeacher.advisor_class.toUpperCase() !== 'YOK';
 
-      const selectedDate = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
+  const selectedDate = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
 
-      currentStudents.forEach(student => {
-        // Öğrencinin o güne ait tüm branşlardaki ödevleri (4. BADGE HESABI)
-        const studentSelectedDateHws = currentHomeworks.filter(h => h.student_id === student.id && h.assigned_date === selectedDate && h.status !== 'ODEV_VERILMEDI');
-        const badgeCount = studentSelectedDateHws.length;
+  currentStudents.forEach(student => {
+    // BADGE HESABI: Öğrencinin tüm öğretmenler ve branşlar tarafından verilmiş
+    // FAKAT HENÜZ KONTROL EDİLMEMİŞ ('KONTROL_EDILMEDI') olan ödevlerini bul
+    const studentUncheckedHws = currentHomeworks.filter(h => 
+      h.student_id === student.id && 
+      h.status === 'KONTROL_EDILMEDI'
+    );
 
-        let badgeHTML = '';
-        if (badgeCount > 0) {
-          badgeHTML = `<span class="inline-flex items-center justify-center bg-red-600 text-white font-bold text-[10px] rounded-full h-4 min-w-[16px] px-1 mr-1 shadow" title="${selectedDate} tarihinde toplam ${badgeCount} ödev verilmiş"> ${badgeCount}</span>`;
-        }
+    // Tekrarlı kayıtları önlemek için benzersiz ödev kimliği üzerinden sayım yap
+    const uniqueHwIds = new Set(studentUncheckedHws.map(h => h.id || `${h.subject_name}_${h.assigned_date}`));
+    const uncheckedHomeworkCount = uniqueHwIds.size;
 
-        // Giriş yapan öğretmenin branşına ait seçili gündeki ödevi bul
-        const teacherHw = currentHomeworks.find(h => h.student_id === student.id && h.subject_name === currentTeacher.subject && h.assigned_date === selectedDate);
-        
-        // 1. RULE: Eğer öğretmen o gün ödev tanımlamadıysa kontrol YAPILAMASIN
-        const hasDefinedHomework = teacherHw && teacherHw.status !== 'ODEV_VERILMEDI';
+    // BADGE GÖRÜNÜRLÜK MANTIĞI:
+    // Kontrol edilmemiş ödev sayısı 0 ise badge gösterilmez (DOM'da boşluk bırakmaz).
+    // Kontrol edilmemiş ödev sayısı > 0 ise badge içerisinde bu sayı gösterilir.
+    let badgeHTML = '';
+    if (uncheckedHomeworkCount > 0) {
+      badgeHTML = `<span class="inline-flex items-center justify-center bg-red-600 text-white font-bold text-[10px] rounded-full h-4 min-w-[16px] px-1 mr-1 shadow" title="Kontrol edilmemiş ${uncheckedHomeworkCount} ödev var">${uncheckedHomeworkCount}</span>`;
+    }
 
-        let tr = document.createElement('tr');
-        tr.className = "hover:bg-gray-50 border-b";
+    // Giriş yapan öğretmenin branşına ait seçili gündeki ödevi bul
+    const teacherHw = currentHomeworks.find(h => h.student_id === student.id && h.subject_name === currentTeacher.subject && h.assigned_date === selectedDate);
+    
+    // Eğer öğretmen o gün ödev tanımlamadıysa kontrol YAPILAMASIN
+    const hasDefinedHomework = teacherHw && teacherHw.status !== 'ODEV_VERILMEDI';
 
-        let homeworkControlCellHTML = '';
+    let tr = document.createElement('tr');
+    tr.className = "hover:bg-gray-50 border-b";
 
-        if (!hasDefinedHomework) {
-          // 1. ÖDEV TANIMLANMADIYSA BUTON/SİSTEM PASİF
-          homeworkControlCellHTML = `
-            <div class="flex items-center justify-between gap-1 p-1">
-              <span class="text-[11px] text-gray-400 italic">Ödev Verilmedi.</span>
-              <select disabled class="p-1 rounded text-xs font-bold border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed">
-                <option selected>Tanımsız</option>
-              </select>
-            </div>
-          `;
-        } else {
-          // 2, 3, 5, 6. ÖDEV TANIMLIYSA: TIKLANABİLİR METİN + MODAL + YAPTI/YAPMADI/KONTROL EDİLMEDİ SEÇİMİ
-          const status = teacherHw.status;
-          homeworkControlCellHTML = `
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-1">
-              <div onclick="openHomeworkModalById(${teacherHw.id})" class="cursor-pointer hover:underline text-indigo-700 font-medium text-xs truncate max-w-[180px]" title="Ödev Detayı İçin Tıklayın">
-                📘 ${teacherHw.description ? teacherHw.description : (teacherHw.subject_name + ' Ödevi')}
-              </div>
-              <select onchange="handleStatusChange(${student.id}, this.value, ${teacherHw.id})" class="p-1.5 rounded text-xs font-bold outline-none cursor-pointer ${'status-' + status}">
-                <option value="KONTROL_EDILMEDI" class="bg-white text-gray-800" ${status === 'KONTROL_EDILMEDI' ? 'selected' : ''}>Kontrol Edilmedi</option>
-                <option value="YAPTI" class="bg-white text-gray-800" ${status === 'YAPTI' ? 'selected' : ''}>Yaptı</option>
-                <option value="YAPMADI" class="bg-white text-gray-800" ${status === 'YAPMADI' ? 'selected' : ''}>Yapmadı</option>
-                <option value="YARIM_YAPTI" class="bg-white text-gray-800" ${status === 'YARIM_YAPTI' ? 'selected' : ''}>Yarım Yaptı</option>
-              </select>
-            </div>
-          `;
-        }
+    let homeworkControlCellHTML = '';
 
-        const studentNote = teacherHw ? (teacherHw.student_note || '') : '';
+    if (!hasDefinedHomework) {
+      homeworkControlCellHTML = `
+        <div class="flex items-center justify-between gap-1 p-1">
+          <span class="text-[11px] text-gray-400 italic">Ödev Verilmedi.</span>
+          <select disabled class="p-1 rounded text-xs font-bold border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed">
+            <option selected>Tanımsız</option>
+          </select>
+        </div>
+      `;
+    } else {
+      const status = teacherHw.status;
+      homeworkControlCellHTML = `
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-1">
+          <div onclick="openHomeworkModalById(${teacherHw.id})" class="cursor-pointer hover:underline text-indigo-700 font-medium text-xs truncate max-w-[180px]" title="Ödev Detayı İçin Tıklayın">
+            📘 ${teacherHw.description ? teacherHw.description : (teacherHw.subject_name + ' Ödevi')}
+          </div>
+          <select onchange="handleStatusChange(${student.id}, this.value, ${teacherHw.id})" class="p-1.5 rounded text-xs font-bold outline-none cursor-pointer ${'status-' + status}">
+            <option value="KONTROL_EDILMEDI" class="bg-white text-gray-800" ${status === 'KONTROL_EDILMEDI' ? 'selected' : ''}>Kontrol Edilmedi</option>
+            <option value="YAPTI" class="bg-white text-gray-800" ${status === 'YAPTI' ? 'selected' : ''}>Yaptı</option>
+            <option value="YAPMADI" class="bg-white text-gray-800" ${status === 'YAPMADI' ? 'selected' : ''}>Yapmadı</option>
+            <option value="YARIM_YAPTI" class="bg-white text-gray-800" ${status === 'YARIM_YAPTI' ? 'selected' : ''}>Yarım Yaptı</option>
+          </select>
+        </div>
+      `;
+    }
 
-        let studentTd = `
-          <td class="p-2.5 border-r text-center font-bold text-gray-600">${student.student_number}</td>
-          <td class="p-2.5 border-r font-semibold text-indigo-900 flex items-center gap-1">
-            ${badgeHTML}
-            <span class="cursor-pointer hover:underline" onclick="openStudentReport(${student.id}, 'week')" title="Haftalık Rapor İçin Tıklayın">${student.full_name} 📅</span>
-          </td>
-          <td class="p-1.5 border-r">
-            ${homeworkControlCellHTML}
-          </td>
-          <td class="p-1.5 border-r">
-            <input type="text" value="${studentNote}" ${!hasDefinedHomework ? 'disabled placeholder="Ödev tanımlanmadı"' : 'placeholder="Öğrenciye özel not..."'} onchange="handleStudentNoteChange(${student.id}, this.value, ${teacherHw ? teacherHw.id : null})" class="w-full p-1.5 text-xs border rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400">
-          </td>
-        `;
+    const studentNote = teacherHw ? (teacherHw.student_note || '') : '';
 
-        let actionTd = `
-          <td class="p-1.5 text-center space-x-1 no-print">
-            <button onclick="openStudentReport(${student.id}, 'month')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold px-2 py-1 rounded text-xs">
-              📊 Aylık Rapor
-            </button>
-            ${(isAdvisorView && hasAdvisor) ? `
-              <button onclick="editStudent(${student.id})" class="text-blue-600 hover:bg-blue-50 p-1 rounded text-xs font-bold">Düzenle</button>
-              <button onclick="handleDeleteStudent(${student.id})" class="text-red-600 hover:bg-red-50 p-1 rounded text-xs font-bold">Sil</button>
-            ` : ''}
-          </td>
-        `;
+    let studentTd = `
+      <td class="p-2.5 border-r text-center font-bold text-gray-600">${student.student_number}</td>
+      <td class="p-2.5 border-r font-semibold text-indigo-900 flex items-center gap-1">
+        ${badgeHTML}
+        <span class="cursor-pointer hover:underline" onclick="openStudentReport(${student.id}, 'week')" title="Haftalık Rapor İçin Tıklayın">${student.full_name} 📅</span>
+      </td>
+      <td class="p-1.5 border-r">
+        ${homeworkControlCellHTML}
+      </td>
+      <td class="p-1.5 border-r">
+        <input type="text" value="${studentNote}" ${!hasDefinedHomework ? 'disabled placeholder="Ödev tanımlanmadı"' : 'placeholder="Öğrenciye özel not..."'} onchange="handleStudentNoteChange(${student.id}, this.value, ${teacherHw ? teacherHw.id : null})" class="w-full p-1.5 text-xs border rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400">
+      </td>
+    `;
 
-        tr.innerHTML = studentTd + actionTd;
-        tbody.appendChild(tr);
-      });
+    let actionTd = `
+      <td class="p-1.5 text-center space-x-1 no-print">
+        <button onclick="openStudentReport(${student.id}, 'month')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold px-2 py-1 rounded text-xs">
+          📊 Aylık Rapor
+        </button>
+        ${(isAdvisorView && hasAdvisor) ? `
+          <button onclick="editStudent(${student.id})" class="text-blue-600 hover:bg-blue-50 p-1 rounded text-xs font-bold">Düzenle</button>
+          <button onclick="handleDeleteStudent(${student.id})" class="text-red-600 hover:bg-red-50 p-1 rounded text-xs font-bold">Sil</button>
+        ` : ''}
+      </td>
+    `;
+
+    tr.innerHTML = studentTd + actionTd;
+    tbody.appendChild(tr);
+  });
     }
 
     async function handleAssignHomeworkToClass() {
