@@ -161,7 +161,7 @@
 
   <main class="max-w-7xl mx-auto p-3 md:p-6 w-full flex-grow">
 
-    <!-- 8. KULLANICI ADI GİRİŞ EKRANI (Küçük harf dönüşümü eklendi) -->
+    <!-- KULLANICI ADI GİRİŞ EKRANI -->
     <div id="teacherLoginView" class="bg-white p-5 md:p-6 rounded-xl shadow-md border max-w-md mx-auto my-6 md:my-10">
       <h2 class="text-lg md:text-xl font-bold text-indigo-950 mb-4 text-center">Öğretmen Girişi</h2>
       <form onsubmit="handleTeacherLogin(event)" class="space-y-4">
@@ -247,7 +247,7 @@
       </div>
     </div>
 
-    <!-- 3. ÖDEV DETAY MODALI -->
+    <!-- ÖDEV DETAY MODALI -->
     <div id="homeworkDetailModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onclick="closeHomeworkModal(event)">
       <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-5 space-y-4 relative" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center border-b pb-2">
@@ -328,7 +328,7 @@
               </form>
             </div>
 
-            <!-- 7. ÖDEV TANIMLAMA EKRANINDA SINIF BAŞLIĞI -->
+            <!-- ÖDEV TANIMLAMA EKRANI -->
             <div id="panelAssignHomework" class="hidden bg-indigo-900 text-white p-3.5 rounded-xl shadow border">
               <h4 id="assignHomeworkClassHeader" class="font-bold text-sm text-indigo-100 flex items-center gap-1.5 mb-2 border-b border-indigo-700 pb-2">
                 📚 Lütfen ödev vermek istediğiniz sınıfı seçiniz.
@@ -629,7 +629,6 @@
       }
     }
 
-    // 8. KULLANICI ADI KONTROLÜ (Giriş işleminde de küçük harfe zorlar)
     async function handleTeacherLogin(e) {
       e.preventDefault();
       const u = document.getElementById('teachUser').value.trim().toLowerCase();
@@ -850,7 +849,6 @@
       await loadTeacherTasks();
     }
 
-    // 7. ÖDEV TANIMLAMA EKRANINDA SINIF BAŞLIĞI GÜNCELLEME
     function updateAssignHomeworkHeader() {
       const headerEl = document.getElementById('assignHomeworkClassHeader');
       if (!headerEl) return;
@@ -899,23 +897,22 @@
         .eq('grade_class', activeClass)
         .order('student_number', { ascending: true });
 
-      // Tüm ödev kayıtlarını çek
+      // Tüm ödev kayıtlarını çek (En yeni veriler için sıralama kuralıyla)
       const { data: homeworks } = await supabaseClient
         .from('homework_status')
-        .select('*');
+        .select('*')
+        .order('assigned_date', { ascending: false });
 
       const todayDateStr = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
 
       currentStudents = students || [];
       currentHomeworks = homeworks || [];
       
-      // 4. BADGE: Seçili gün içerisindeki tanımlanmış tüm ödevlerin filtrelenmesi
       todayAllHomeworks = currentHomeworks.filter(h => h.assigned_date === todayDateStr && h.status !== 'ODEV_VERILMEDI');
       
       renderTable();
     }
 
-    // 3. VE 5. ÖDEV DETAY MODALINI AÇMA
     function openHomeworkModalById(hwId) {
       const hw = currentHomeworks.find(h => h.id === hwId);
       if (!hw) return;
@@ -945,105 +942,105 @@
       document.getElementById('homeworkDetailModal').classList.add('hidden');
     }
 
-    // 1, 2, 4, 5, 6. SINIF ÖDEV LİSTESİ VEYA ÖDEV KONTROL TABLOSU YAZDIRMA
+    // SINIF ÖDEV LİSTESİ VEYA ÖDEV KONTROL TABLOSU YAZDIRMA
     function renderTable() {
       const tbody = document.getElementById('mainTableBody');
-  tbody.innerHTML = '';
+      tbody.innerHTML = '';
 
-  const hasAdvisor = currentTeacher.advisor_class && 
-                     currentTeacher.advisor_class.trim() !== '' && 
-                     currentTeacher.advisor_class.toUpperCase() !== 'YOK';
+      const hasAdvisor = currentTeacher.advisor_class && 
+                         currentTeacher.advisor_class.trim() !== '' && 
+                         currentTeacher.advisor_class.toUpperCase() !== 'YOK';
 
-  const selectedDate = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
+      currentStudents.forEach(student => {
+        // Kontrol edilmemiş olan tüm branş ödevleri sayacı
+        const studentUncheckedHws = currentHomeworks.filter(h => 
+          h.student_id === student.id && 
+          h.status === 'KONTROL_EDILMEDI'
+        );
 
-  currentStudents.forEach(student => {
-    // BADGE HESABI: Öğrencinin tüm öğretmenler ve branşlar tarafından verilmiş
-    // FAKAT HENÜZ KONTROL EDİLMEMİŞ ('KONTROL_EDILMEDI') olan ödevlerini bul
-    const studentUncheckedHws = currentHomeworks.filter(h => 
-      h.student_id === student.id && 
-      h.status === 'KONTROL_EDILMEDI'
-    );
+        const uniqueHwIds = new Set(studentUncheckedHws.map(h => h.id || `${h.subject_name}_${h.assigned_date}`));
+        const uncheckedHomeworkCount = uniqueHwIds.size;
 
-    // Tekrarlı kayıtları önlemek için benzersiz ödev kimliği üzerinden sayım yap
-    const uniqueHwIds = new Set(studentUncheckedHws.map(h => h.id || `${h.subject_name}_${h.assigned_date}`));
-    const uncheckedHomeworkCount = uniqueHwIds.size;
+        let badgeHTML = '';
+        if (uncheckedHomeworkCount > 0) {
+          badgeHTML = `<span class="inline-flex items-center justify-center bg-red-600 text-white font-bold text-[10px] rounded-full h-4 min-w-[16px] px-1 mr-1 shadow" title="Kontrol edilmemiş ${uncheckedHomeworkCount} ödev var">${uncheckedHomeworkCount}</span>`;
+        }
 
-    // BADGE GÖRÜNÜRLÜK MANTIĞI:
-    // Kontrol edilmemiş ödev sayısı 0 ise badge gösterilmez (DOM'da boşluk bırakmaz).
-    // Kontrol edilmemiş ödev sayısı > 0 ise badge içerisinde bu sayı gösterilir.
-    let badgeHTML = '';
-    if (uncheckedHomeworkCount > 0) {
-      badgeHTML = `<span class="inline-flex items-center justify-center bg-red-600 text-white font-bold text-[10px] rounded-full h-4 min-w-[16px] px-1 mr-1 shadow" title="Kontrol edilmemiş ${uncheckedHomeworkCount} ödev var">${uncheckedHomeworkCount}</span>`;
-    }
+        // ÖDEV KONTROL MANTIĞI DÜZELTME:
+        // Sadece günün tarihine kısıtlamadan, bu öğretmenin branşına ait EN SON verilen ödevi tespit eder
+        const teacherHws = currentHomeworks.filter(h => 
+          h.student_id === student.id && 
+          h.subject_name === currentTeacher.subject && 
+          h.status !== 'ODEV_VERILMEDI'
+        );
 
-    // Giriş yapan öğretmenin branşına ait seçili gündeki ödevi bul
-    const teacherHw = currentHomeworks.find(h => h.student_id === student.id && h.subject_name === currentTeacher.subject && h.assigned_date === selectedDate);
-    
-    // Eğer öğretmen o gün ödev tanımlamadıysa kontrol YAPILAMASIN
-    const hasDefinedHomework = teacherHw && teacherHw.status !== 'ODEV_VERILMEDI';
+        // Tarihe göre sıralanmış dizide en güncel ödev
+        const teacherHw = teacherHws.length > 0 ? teacherHws[0] : null;
+        
+        const hasDefinedHomework = teacherHw !== null;
 
-    let tr = document.createElement('tr');
-    tr.className = "hover:bg-gray-50 border-b";
+        let tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 border-b";
 
-    let homeworkControlCellHTML = '';
+        let homeworkControlCellHTML = '';
 
-    if (!hasDefinedHomework) {
-      homeworkControlCellHTML = `
-        <div class="flex items-center justify-between gap-1 p-1">
-          <span class="text-[11px] text-gray-400 italic">Ödev Verilmedi.</span>
-          <select disabled class="p-1 rounded text-xs font-bold border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed">
-            <option selected>Tanımsız</option>
-          </select>
-        </div>
-      `;
-    } else {
-      const status = teacherHw.status;
-      homeworkControlCellHTML = `
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-1">
-          <div onclick="openHomeworkModalById(${teacherHw.id})" class="cursor-pointer hover:underline text-indigo-700 font-medium text-xs truncate max-w-[180px]" title="Ödev Detayı İçin Tıklayın">
-            📘 ${teacherHw.description ? teacherHw.description : (teacherHw.subject_name + ' Ödevi')}
-          </div>
-          <select onchange="handleStatusChange(${student.id}, this.value, ${teacherHw.id})" class="p-1.5 rounded text-xs font-bold outline-none cursor-pointer ${'status-' + status}">
-            <option value="KONTROL_EDILMEDI" class="bg-white text-gray-800" ${status === 'KONTROL_EDILMEDI' ? 'selected' : ''}>Kontrol Edilmedi</option>
-            <option value="YAPTI" class="bg-white text-gray-800" ${status === 'YAPTI' ? 'selected' : ''}>Yaptı</option>
-            <option value="YAPMADI" class="bg-white text-gray-800" ${status === 'YAPMADI' ? 'selected' : ''}>Yapmadı</option>
-            <option value="YARIM_YAPTI" class="bg-white text-gray-800" ${status === 'YARIM_YAPTI' ? 'selected' : ''}>Yarım Yaptı</option>
-          </select>
-        </div>
-      `;
-    }
+        if (!hasDefinedHomework) {
+          homeworkControlCellHTML = `
+            <div class="flex items-center justify-between gap-1 p-1">
+              <span class="text-[11px] text-gray-400 italic">Ödev Verilmedi</span>
+              <select disabled class="p-1 rounded text-xs font-bold border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed">
+                <option selected>Tanımsız</option>
+              </select>
+            </div>
+          `;
+        } else {
+          const status = teacherHw.status;
+          homeworkControlCellHTML = `
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 p-1">
+              <div onclick="openHomeworkModalById(${teacherHw.id})" class="cursor-pointer hover:underline text-indigo-700 font-medium text-xs truncate max-w-[180px]" title="Ödev Detayı İçin Tıklayın (${teacherHw.assigned_date})">
+                📘 ${teacherHw.description ? teacherHw.description : (teacherHw.subject_name + ' Ödevi')}
+              </div>
+              <select onchange="handleStatusChange(${student.id}, this.value, ${teacherHw.id})" class="p-1.5 rounded text-xs font-bold outline-none cursor-pointer ${'status-' + status}">
+                <option value="KONTROL_EDILMEDI" class="bg-white text-gray-800" ${status === 'KONTROL_EDILMEDI' ? 'selected' : ''}>Kontrol Edilmedi</option>
+                <option value="YAPTI" class="bg-white text-gray-800" ${status === 'YAPTI' ? 'selected' : ''}>Yaptı</option>
+                <option value="YAPMADI" class="bg-white text-gray-800" ${status === 'YAPMADI' ? 'selected' : ''}>Yapmadı</option>
+                <option value="YARIM_YAPTI" class="bg-white text-gray-800" ${status === 'YARIM_YAPTI' ? 'selected' : ''}>Yarım Yaptı</option>
+              </select>
+            </div>
+          `;
+        }
 
-    const studentNote = teacherHw ? (teacherHw.student_note || '') : '';
+        const studentNote = teacherHw ? (teacherHw.student_note || '') : '';
 
-    let studentTd = `
-      <td class="p-2.5 border-r text-center font-bold text-gray-600">${student.student_number}</td>
-      <td class="p-2.5 border-r font-semibold text-indigo-900 flex items-center gap-1">
-        ${badgeHTML}
-        <span class="cursor-pointer hover:underline" onclick="openStudentReport(${student.id}, 'week')" title="Haftalık Rapor İçin Tıklayın">${student.full_name} 📅</span>
-      </td>
-      <td class="p-1.5 border-r">
-        ${homeworkControlCellHTML}
-      </td>
-      <td class="p-1.5 border-r">
-        <input type="text" value="${studentNote}" ${!hasDefinedHomework ? 'disabled placeholder="Ödev tanımlanmadı"' : 'placeholder="Öğrenciye özel not..."'} onchange="handleStudentNoteChange(${student.id}, this.value, ${teacherHw ? teacherHw.id : null})" class="w-full p-1.5 text-xs border rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400">
-      </td>
-    `;
+        let studentTd = `
+          <td class="p-2.5 border-r text-center font-bold text-gray-600">${student.student_number}</td>
+          <td class="p-2.5 border-r font-semibold text-indigo-900 flex items-center gap-1">
+            ${badgeHTML}
+            <span class="cursor-pointer hover:underline" onclick="openStudentReport(${student.id}, 'week')" title="Haftalık Rapor İçin Tıklayın">${student.full_name} 📅</span>
+          </td>
+          <td class="p-1.5 border-r">
+            ${homeworkControlCellHTML}
+          </td>
+          <td class="p-1.5 border-r">
+            <input type="text" value="${studentNote}" ${!hasDefinedHomework ? 'disabled placeholder="Ödev tanımlanmadı"' : 'placeholder="Öğrenciye özel not..."'} onchange="handleStudentNoteChange(${student.id}, this.value, ${teacherHw ? teacherHw.id : null})" class="w-full p-1.5 text-xs border rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400">
+          </td>
+        `;
 
-    let actionTd = `
-      <td class="p-1.5 text-center space-x-1 no-print">
-        <button onclick="openStudentReport(${student.id}, 'month')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold px-2 py-1 rounded text-xs">
-          📊 Aylık Rapor
-        </button>
-        ${(isAdvisorView && hasAdvisor) ? `
-          <button onclick="editStudent(${student.id})" class="text-blue-600 hover:bg-blue-50 p-1 rounded text-xs font-bold">Düzenle</button>
-          <button onclick="handleDeleteStudent(${student.id})" class="text-red-600 hover:bg-red-50 p-1 rounded text-xs font-bold">Sil</button>
-        ` : ''}
-      </td>
-    `;
+        let actionTd = `
+          <td class="p-1.5 text-center space-x-1 no-print">
+            <button onclick="openStudentReport(${student.id}, 'month')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold px-2 py-1 rounded text-xs">
+              📊 Aylık Rapor
+            </button>
+            ${(isAdvisorView && hasAdvisor) ? `
+              <button onclick="editStudent(${student.id})" class="text-blue-600 hover:bg-blue-50 p-1 rounded text-xs font-bold">Düzenle</button>
+              <button onclick="handleDeleteStudent(${student.id})" class="text-red-600 hover:bg-red-50 p-1 rounded text-xs font-bold">Sil</button>
+            ` : ''}
+          </td>
+        `;
 
-    tr.innerHTML = studentTd + actionTd;
-    tbody.appendChild(tr);
-  });
+        tr.innerHTML = studentTd + actionTd;
+        tbody.appendChild(tr);
+      });
     }
 
     async function handleAssignHomeworkToClass() {
@@ -1068,15 +1065,13 @@
       if (!confirm(`${activeClass} sınıfına "${descInput}" ödevi verilsin mi?\n\nÖdev Verilme Tarihi: ${assignDate}`)) return;
 
       const upsertData = currentStudents.map(student => {
-        const teacherHw = currentHomeworks.find(h => h.student_id === student.id && h.subject_name === currentTeacher.subject && h.assigned_date === assignDate);
-
         return {
           student_id: student.id,
           subject_name: currentTeacher.subject,
           assigned_date: assignDate,
-          status: teacherHw && teacherHw.status !== 'ODEV_VERILMEDI' ? teacherHw.status : 'KONTROL_EDILMEDI',
+          status: 'KONTROL_EDILMEDI',
           description: descInput,
-          student_note: teacherHw ? teacherHw.student_note : null,
+          student_note: null,
           updated_at: new Date()
         };
       });
@@ -1092,7 +1087,6 @@
       }
     }
 
-    // 1, 5, 6. İLİŞKİLİ ÖDEV KONTROLÜ
     async function handleStatusChange(studentId, newStatus, hwId) {
       if (!hwId) {
         alert("Bu öğrenci için henüz ödev tanımlanmamış. Kontrol yapılamaz!");
@@ -1102,6 +1096,13 @@
 
       const hw = currentHomeworks.find(h => h.id === hwId);
       if (!hw) return;
+
+      // Branş Yetki Kontrolü
+      if (hw.subject_name !== currentTeacher.subject) {
+        alert("Başka bir branş öğretmeninin ödevini değiştiremezsiniz!");
+        await loadClassData();
+        return;
+      }
 
       await supabaseClient.from('homework_status').update({
         status: newStatus,
@@ -1114,6 +1115,13 @@
     async function handleStudentNoteChange(studentId, newNote, hwId) {
       if (!hwId) return;
 
+      const hw = currentHomeworks.find(h => h.id === hwId);
+      if (hw && hw.subject_name !== currentTeacher.subject) {
+        alert("Başka bir branş öğretmeninin ödev notunu değiştiremezsiniz!");
+        await loadClassData();
+        return;
+      }
+
       await supabaseClient.from('homework_status').update({
         student_note: newNote,
         updated_at: new Date()
@@ -1122,25 +1130,27 @@
       await loadClassData();
     }
 
-    // 1. TOPLU KONTROL İŞLEMİ (Sadece Tanımlı Ödevler İçin Çalışır)
     async function bulkSetHomeworkStatus(targetStatus) {
       if (!currentStudents || currentStudents.length === 0) {
         alert("Sınıfta öğrenci bulunmuyor!");
         return;
       }
 
-      const selectedDate = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
-      
-      // Sadece gerçekten ödev tanımlanmış olan kayıtları güncelle
-      const validHwsToUpdate = currentHomeworks.filter(h => 
-        h.subject_name === currentTeacher.subject && 
-        h.assigned_date === selectedDate && 
-        h.status !== 'ODEV_VERILMEDI' &&
-        currentStudents.some(s => s.id === h.student_id)
-      );
+      // Branşa ait kontrol edilmemiş aktif ödevleri güncelle
+      const validHwsToUpdate = [];
+      currentStudents.forEach(student => {
+        const studentSubjHws = currentHomeworks.filter(h => 
+          h.student_id === student.id && 
+          h.subject_name === currentTeacher.subject && 
+          h.status !== 'ODEV_VERILMEDI'
+        );
+        if (studentSubjHws.length > 0) {
+          validHwsToUpdate.push(studentSubjHws[0]);
+        }
+      });
 
       if (validHwsToUpdate.length === 0) {
-        alert("Seçili tarih için bu sınıfta tanımlanmış bir ödev bulunmamaktadır. Önceden ödev tanımlaması yapmalısınız!");
+        alert("Bu sınıfta branşınıza tanımlanmış aktif ödev bulunmamaktadır. Önceden ödev tanımlaması yapmalısınız!");
         return;
       }
 
@@ -1148,11 +1158,10 @@
         'YAPTI': 'YAPTI',
         'YAPMADI': 'YAPMADI',
         'YARIM_YAPTI': 'YARIM YAPTI',
-        'KONTROL_EDILMEDI': 'KONTROL EDİLMEDİ',
-        'ODEV_VERILMEDI': 'Sıfırla'
+        'KONTROL_EDILMEDI': 'ÖDEV VERİLDİ – KONTROL EDİLMEDİ'
       };
 
-      if (!confirm(`Seçili tarihteki tanımlı ödevlerin durumu "${statusTextMap[targetStatus]}" olarak güncellensin mi?`)) return;
+      if (!confirm(`Sınıfın aktif ${currentTeacher.subject} ödevlerinin durumu "${statusTextMap[targetStatus]}" olarak güncellensin mi?`)) return;
 
       const updatePromises = validHwsToUpdate.map(hw => {
         return supabaseClient.from('homework_status').update({
@@ -1171,13 +1180,17 @@
         return;
       }
 
-      const selectedDate = document.getElementById('assignedHomeworkDate').value || new Date().toISOString().split('T')[0];
-      
-      const validHwsToUpdate = currentHomeworks.filter(h => 
-        h.subject_name === currentTeacher.subject && 
-        h.assigned_date === selectedDate && 
-        currentStudents.some(s => s.id === h.student_id)
-      );
+      const validHwsToUpdate = [];
+      currentStudents.forEach(student => {
+        const studentSubjHws = currentHomeworks.filter(h => 
+          h.student_id === student.id && 
+          h.subject_name === currentTeacher.subject && 
+          h.status !== 'ODEV_VERILMEDI'
+        );
+        if (studentSubjHws.length > 0) {
+          validHwsToUpdate.push(studentSubjHws[0]);
+        }
+      });
 
       if (validHwsToUpdate.length === 0) {
         alert("Lütfen öncelikle ödev tanımlama ekranından bir ödev veriniz.");
