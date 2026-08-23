@@ -83,11 +83,9 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 min-h-screen flex flex-col justify-between">
 
-  <!-- MOBİL UYUMLU VE EN SAĞA YASLANMIŞ NAVİGASYON BAR -->
   <nav class="bg-indigo-900 text-white p-3 md:p-4 shadow-md no-print">
     <div class="max-w-7xl mx-auto flex flex-row items-center justify-between gap-2">
       
-      <!-- LOGO VE BAŞLIK -->
       <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
         <div class="bg-white text-indigo-900 font-bold p-1 md:p-2 rounded-full w-10 h-10 md:w-14 md:h-14 flex items-center justify-center border-2 border-indigo-300">
           <img src="3adimkoleji.png" alt="🎓" class="max-h-full max-w-full object-contain">
@@ -95,7 +93,6 @@
         <span class="font-bold text-sm md:text-lg tracking-wide whitespace-nowrap">3ADIM KOLEJİ</span>
       </div>
 
-      <!-- EN SAĞA YASLANMIŞ RESPONSIVE TEMA SWITCHER -->
       <div class="flex items-center space-x-1.5 md:space-x-2 ms-auto shrink-0 bg-indigo-950/40 px-2.5 py-1.5 rounded-full border border-indigo-700/50">
         <span class="text-[11px] md:text-xs font-semibold text-indigo-200 select-none whitespace-nowrap">🌙 <span class="hidden sm:inline">Koyu Tema</span></span>
         <label class="relative inline-flex items-center cursor-pointer">
@@ -109,7 +106,6 @@
 
   <main class="max-w-7xl mx-auto p-3 md:p-4 w-full flex-grow">
 
-    <!-- ADMİN GİRİŞİ -->
     <div id="adminLoginView" class="bg-white p-6 rounded-xl shadow-md border max-w-md mx-auto mt-6 md:mt-10 no-print">
       <h2 class="text-xl font-bold text-indigo-950 mb-4 text-center">Yönetici Girişi</h2>
       <form onsubmit="handleAdminLogin(event)" class="space-y-4">
@@ -125,7 +121,6 @@
       </form>
     </div>
 
-    <!-- ADMİN DASHBOARD -->
     <div id="adminDashboardView" class="hidden space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md border no-print">
         <h2 class="text-lg md:text-xl font-bold text-indigo-950">Öğretmen, Sınıf Ve Görev Yönetimi</h2>
@@ -137,9 +132,7 @@
         </div>
       </div>
 
-      <!-- BÖLÜM 1: ÖĞRETMEN YÖNETİMİ -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Öğretmen Ekleme Formu -->
         <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
           <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">Yeni Öğretmen Ekle</h3>
           <form onsubmit="handleTeacherAdd(event)" class="space-y-3">
@@ -151,10 +144,18 @@
               <label class="block text-xs font-medium text-gray-600">Branşı (Örn: Matematik)</label>
               <input type="text" id="tSubject" required placeholder="Örn: Matematik" class="w-full p-2 border rounded-lg text-sm">
             </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı (Örn: 5A)</label>
-              <input type="text" id="tAdvisorClass" required placeholder="Örn: 5A" class="w-full p-2 border rounded-lg text-sm">
+
+            <div class="p-2 border rounded-lg bg-gray-50 space-y-2">
+              <div class="flex items-center space-x-2">
+                <input type="checkbox" id="tHasAdvisor" onchange="toggleAdvisorInput()" class="h-4 w-4 text-indigo-600 rounded">
+                <label for="tHasAdvisor" class="text-xs font-semibold text-gray-700">Danışman Sınıfı Var</label>
+              </div>
+              <div id="advisorInputContainer" class="hidden">
+                <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı (Örn: 5A)</label>
+                <input type="text" id="tAdvisorClass" placeholder="Örn: 5A" class="w-full p-2 border rounded-lg text-sm">
+              </div>
             </div>
+
             <div>
               <label class="block text-xs font-medium text-gray-600">Ders Verdiği Sınıflar (Virgülle Ayırın)</label>
               <input type="text" id="tClasses" required placeholder="Örn: 5A, 5B, 6A, 7B" class="w-full p-2 border rounded-lg text-sm">
@@ -171,7 +172,6 @@
           </form>
         </div>
 
-        <!-- Öğretmen Listesi -->
         <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200">
           <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">Sistemdeki Öğretmenler (Görev Raporu İçin Adına Tıklayın)</h3>
           <div class="overflow-x-auto">
@@ -191,9 +191,7 @@
         </div>
       </div>
 
-      <!-- BÖLÜM 2: ÖĞRETMEN GÖREV TANIMLAMA SEKTÖRÜ -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-300">
-        <!-- Görev Tanımlama Formu -->
         <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
           <h3 class="font-bold text-amber-800 mb-4 border-b pb-2">📌 Yeni Görev Tanımla</h3>
           <form onsubmit="handleTaskSave(event)" class="space-y-3">
@@ -213,7 +211,6 @@
               <label for="repeatWeekly" class="text-sm text-gray-700">Haftalık Tekrar Et</label>.</div>
             </div>
 
-            <!-- KAPSAM / ATAMA SEÇENEĞİ -->
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Görev Atama Kapsamı</label>
               <select id="taskAssignType" onchange="toggleTeacherSelection()" class="w-full p-2 border rounded-lg text-sm font-bold bg-amber-50 text-amber-900">
@@ -222,7 +219,6 @@
               </select>
             </div>
 
-            <!-- ÖĞRETMEN SEÇİM LİSTESİ (Çoklu Seçim) -->
             <div id="teacherSelectContainer" class="hidden border rounded-lg p-2 bg-gray-50 max-h-36 overflow-y-auto space-y-1">
               <label class="block text-[11px] font-bold text-gray-500 mb-1 border-b pb-1">Atanacak Öğretmenleri Seçiniz:</label>
               <div id="teacherCheckboxes" class="space-y-1 text-xs"></div>
@@ -235,7 +231,6 @@
           </form>
         </div>
 
-        <!-- Görev Listesi -->
         <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
           <h3 class="font-bold text-amber-800 mb-4 border-b pb-2">📋 Tanımlanmış Görevler</h3>
           <div class="overflow-x-auto">
@@ -254,9 +249,7 @@
         </div>
       </div>
 
-      <!-- BÖLÜM 3: HAFTALIK ÖĞRENME KAZANIMLARI YÖNETİMİ -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-300">
-        <!-- Kazanım Ekleme / Güncelleme Formu -->
         <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
           <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">📚 Haftalık Öğrenme Kazanımları</h3>
           <form onsubmit="handleWeeklySave(event)" class="space-y-3">
@@ -276,7 +269,6 @@
           </form>
         </div>
 
-        <!-- Kazanım Listesi -->
         <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-md border border-gray-200 no-print">
           <h3 class="font-bold text-indigo-900 mb-4 border-b pb-2">📝 Haftalık Öğrenme Kazanımları</h3>
           <div class="overflow-x-auto">
@@ -297,7 +289,6 @@
     </div>
   </main>
 
-  <!-- ÖĞRETMEN GÜNCELLEME MODAL -->
   <div id="editTeacherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print">
     <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
@@ -314,10 +305,18 @@
           <label class="block text-xs font-medium text-gray-600">Branşı</label>
           <input type="text" id="editSubject" required class="w-full p-2 border rounded-lg text-sm">
         </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı</label>
-          <input type="text" id="editAdvisorClass" required class="w-full p-2 border rounded-lg text-sm">
+        
+        <div class="p-2 border rounded-lg bg-gray-50 space-y-2">
+          <div class="flex items-center space-x-2">
+            <input type="checkbox" id="editHasAdvisor" onchange="toggleEditAdvisorInput()" class="h-4 w-4 text-indigo-600 rounded">
+            <label for="editHasAdvisor" class="text-xs font-semibold text-gray-700">Danışman Sınıfı Var</label>
+          </div>
+          <div id="editAdvisorInputContainer" class="hidden">
+            <label class="block text-xs font-medium text-gray-600">Danışman Sınıfı</label>
+            <input type="text" id="editAdvisorClass" class="w-full p-2 border rounded-lg text-sm">
+          </div>
         </div>
+
         <div>
           <label class="block text-xs font-medium text-gray-600">Ders Verdiği Sınıflar (Virgülle Ayırın)</label>
           <input type="text" id="editClasses" required class="w-full p-2 border rounded-lg text-sm">
@@ -338,7 +337,6 @@
     </div>
   </div>
 
-  <!-- ÖĞRETMEN GÖREV RAPORU MODALI -->
   <div id="teacherTaskReportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white p-6 rounded-xl shadow-xl max-w-2xl w-full space-y-4 print-area">
       <div class="print-header">
@@ -376,7 +374,6 @@
     </div>
   </div>
 
-  <!-- SINIF BAZLI DERS/ÖDEV RAPORU MODALI -->
   <div id="classReportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white p-6 rounded-xl shadow-xl max-w-5xl w-full space-y-4 max-h-[90vh] overflow-y-auto print-area">
       
@@ -390,7 +387,6 @@
         <button onclick="closeClassReportModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
       </div>
 
-      <!-- Sınıf ve Tarih Filtreleme Alanı -->
       <div class="bg-emerald-50 p-3 rounded-lg border flex flex-wrap gap-4 items-center no-print">
         <div>
           <label class="block text-xs font-bold text-emerald-900 mb-1">Sınıf Seçiniz:</label>
@@ -408,14 +404,12 @@
         </div>
       </div>
 
-      <!-- Danışman Öğretmen ve Sınıf Bilgileri -->
       <div id="classReportMetaInfo" class="bg-indigo-50/70 p-3 rounded-lg border text-xs grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div><span class="text-gray-500">Sınıf:</span> <strong id="adminRepClass" class="text-indigo-950">-</strong></div>
         <div><span class="text-gray-500">Ödev Tarih Aralığı:</span> <strong id="adminRepDate" class="text-indigo-950">-</strong></div>
         <div><span class="text-gray-500">Danışman Öğretmen:</span> <strong id="adminRepAdvisor" class="text-indigo-950">-</strong></div>
       </div>
 
-      <!-- Rapor Tablo Yapısı -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs border border-collapse">
           <thead class="bg-gray-100 uppercase font-bold text-gray-800">
@@ -442,7 +436,7 @@
   </div>
 
   <footer class="bg-gray-800 text-gray-400 text-center py-4 text-xs border-t border-gray-700 no-print">
-     <a href="https://ertugrulozer.vercel.app/" target="_blank" rel="noopener noreferrer" class="hover:underline">Ertuğrul ÖZER</a> © 2026 | Tüm Hakları Saklıdır.
+    <a href="https://github.com/ertugrullozer" target="_blank" rel="noopener noreferrer" class="hover:underline">Ertuğrul ÖZER</a> © 2026 | Tüm Hakları Saklıdır.
   </footer>
 
   <script>
@@ -451,6 +445,37 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let globalTeachersList = [];
+
+    // DANIŞMAN SINIF GİRDİSİ AÇMA / KAPATMA MANTIĞI
+    function toggleAdvisorInput() {
+      const hasAdvisor = document.getElementById('tHasAdvisor').checked;
+      const container = document.getElementById('advisorInputContainer');
+      const input = document.getElementById('tAdvisorClass');
+      
+      if (hasAdvisor) {
+        container.classList.remove('hidden');
+        input.required = true;
+      } else {
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
+      }
+    }
+
+    function toggleEditAdvisorInput() {
+      const hasAdvisor = document.getElementById('editHasAdvisor').checked;
+      const container = document.getElementById('editAdvisorInputContainer');
+      const input = document.getElementById('editAdvisorClass');
+      
+      if (hasAdvisor) {
+        container.classList.remove('hidden');
+        input.required = true;
+      } else {
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
+      }
+    }
 
     // TEMA DEĞİŞTİRME MANTIĞI
     function toggleTheme() {
@@ -556,7 +581,13 @@
       e.preventDefault();
       const full_name = document.getElementById('tFullName').value;
       const subject = document.getElementById('tSubject').value.trim();
-      const advisor_class = document.getElementById('tAdvisorClass').value.toUpperCase().trim();
+      const hasAdvisor = document.getElementById('tHasAdvisor').checked;
+      
+      // Checkbox seçili ise kullanıcının girdiği sınıfı, değilse "YOK" değerini alıyoruz
+      const advisor_class = hasAdvisor 
+        ? document.getElementById('tAdvisorClass').value.toUpperCase().trim() 
+        : "YOK";
+
       const classesInput = document.getElementById('tClasses').value.toUpperCase().split(',');
       const username = document.getElementById('tUser').value;
       const password = document.getElementById('tPass').value;
@@ -602,7 +633,12 @@
       document.getElementById('editTeacherId').value = teacher.id;
       document.getElementById('editFullName').value = teacher.full_name;
       document.getElementById('editSubject').value = teacher.subject;
-      document.getElementById('editAdvisorClass').value = teacher.advisor_class;
+      
+      const hasAdvisor = teacher.advisor_class && teacher.advisor_class !== 'YOK';
+      document.getElementById('editHasAdvisor').checked = hasAdvisor;
+      document.getElementById('editAdvisorClass').value = hasAdvisor ? teacher.advisor_class : '';
+      toggleEditAdvisorInput();
+
       document.getElementById('editClasses').value = classesStr;
       document.getElementById('editUser').value = teacher.username;
       document.getElementById('editPass').value = teacher.password;
@@ -619,7 +655,12 @@
       const id = document.getElementById('editTeacherId').value;
       const full_name = document.getElementById('editFullName').value;
       const subject = document.getElementById('editSubject').value.trim();
-      const advisor_class = document.getElementById('editAdvisorClass').value.toUpperCase().trim();
+      const hasAdvisor = document.getElementById('editHasAdvisor').checked;
+      
+      const advisor_class = hasAdvisor 
+        ? document.getElementById('editAdvisorClass').value.toUpperCase().trim() 
+        : "YOK";
+
       const classesInput = document.getElementById('editClasses').value.toUpperCase().split(',');
       const username = document.getElementById('editUser').value;
       const password = document.getElementById('editPass').value;
@@ -652,7 +693,6 @@
 
     // --- GÖREV YÖNETİMİ İŞLEMLERİ ---
 
-    // Tekrar eden görevlerin her Pazartesi sıfırlanması için mevcut haftanın Pazartesi tarihini hesaplar
     function getMondayOfCurrentWeek() {
       const now = new Date();
       const day = now.getDay();
@@ -662,7 +702,6 @@
       return monday;
     }
 
-    // Normal görevlerde tamamlanma kalıcıdır; tekrar eden görevlerde sadece mevcut hafta içindeki tamamlanma geçerlidir
     function isTaskDoneForCurrentPeriod(task, statusObj) {
       if (!statusObj || statusObj.status !== 'YAPTI') return false;
       if (!task.repeat_weekly) return true;
@@ -949,7 +988,6 @@
         return;
       }
 
-      // Danışman Öğretmen Bilgisini Çek
       const { data: advisor } = await supabaseClient
         .from('teachers')
         .select('full_name')
@@ -960,7 +998,6 @@
       document.getElementById('adminRepDate').innerText = (startDate && endDate) ? `${startDate} / ${endDate}` : '-';
       document.getElementById('adminRepAdvisor').innerText = advisor ? advisor.full_name : 'Atanmadı';
 
-      // 1. Seçilen sınıftaki öğrencileri çek
       const { data: students } = await supabaseClient
         .from('students')
         .select('*')
@@ -974,7 +1011,6 @@
 
       const studentIds = students.map(s => s.id);
 
-      // 2. Öğrencilere ait tarih aralığındaki ve SADECE ÖDEV VERİLMİŞ DERSLERİ çek
       let query = supabaseClient
         .from('homework_status')
         .select('*')
@@ -985,11 +1021,10 @@
 
       const { data: homeworks } = await query;
 
-      // Sadece bu tarih aralığında ödev girişi yapılan ders adları
+      // Yalnızca ODEV_VERILMEDI dışında gerçek bir ödev durumu olan kayıtları baz alıyoruz
       const activeHomeworks = (homeworks || []).filter(h => h.status !== 'ODEV_VERILMEDI');
       const subjects = [...new Set(activeHomeworks.map(h => h.subject_name))].sort();
 
-      // Tablo Başlığını Oluştur
       headerTr.innerHTML = `
         <th class="p-2 border">Öğrenci No</th>
         <th class="p-2 border">Adı Soyadı</th>
@@ -1004,7 +1039,6 @@
         headerTr.innerHTML += `<th class="p-2 border text-center bg-indigo-100 text-indigo-900">Özet (Yapılan / Toplam)</th>`;
       }
 
-      // Tablo Satırlarını (Öğrencileri) Oluştur
       tbody.innerHTML = '';
       students.forEach(student => {
         let totalAssignedHW = 0;
@@ -1023,20 +1057,15 @@
             const studentSubHomeworks = (homeworks || []).filter(h => h.student_id === student.id && h.subject_name === sub && h.status !== 'ODEV_VERILMEDI');
 
             if (studentSubHomeworks.length === 0) {
-              rowHtml += `
-                <td class="p-2 border text-center">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-400">
-                    Verilmedi
-                  </span>
-                </td>
-              `;
+              // Ödev verilmemişse boş hücre göster (rozet veya "Verilmedi" metni yazma)
+              rowHtml += `<td class="p-2 border text-center font-medium text-gray-300">-</td>`;
             } else {
               let badgesHtml = '<div class="flex flex-col gap-1 items-center">';
 
               studentSubHomeworks.forEach(hw => {
                 totalAssignedHW++;
-                let badgeClass = "bg-gray-100 text-gray-600";
-                let statusText = "Verilmedi";
+                let badgeClass = "";
+                let statusText = "";
 
                 if (hw.status === 'YAPTI' || hw.status === 'ODEV_YAPILDI') {
                   badgeClass = "bg-green-100 text-green-800 border border-green-300";
@@ -1048,16 +1077,17 @@
                 } else if (hw.status === 'YARIM_YAPTI' || hw.status === 'EKSIK_YAPILDI') {
                   badgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
                   statusText = "Yarım";
-                  totalCompletedHW += 0.5; // Yarım yapılanı 0.5 olarak say
+                  totalCompletedHW += 0.5;
                 }
 
-                // Eğer birden fazla ödev varsa tarih bilgisi ile birlikte bas
-                const dateLabel = studentSubHomeworks.length > 1 && hw.assigned_date ? `<span class="text-[9px] text-gray-500 mr-1">${hw.assigned_date.split('-').slice(1).join('/')}:</span>` : '';
-                badgesHtml += `
-                  <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass} inline-flex items-center">
-                    ${dateLabel}${statusText}
-                  </span>
-                `;
+                if (statusText) {
+                  const dateLabel = studentSubHomeworks.length > 1 && hw.assigned_date ? `<span class="text-[9px] text-gray-500 mr-1">${hw.assigned_date.split('-').slice(1).join('/')}:</span>` : '';
+                  badgesHtml += `
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass} inline-flex items-center">
+                      ${dateLabel}${statusText}
+                    </span>
+                  `;
+                }
               });
 
               badgesHtml += '</div>';
@@ -1065,7 +1095,6 @@
             }
           });
 
-          // Toplam Özet Hesabı Sütunu
           const ratio = totalAssignedHW > 0 ? Math.round((totalCompletedHW / totalAssignedHW) * 100) : 0;
           let summaryColor = "bg-indigo-50 text-indigo-900 border-indigo-200";
           if (ratio >= 80) summaryColor = "bg-green-50 text-green-900 border-green-200";
